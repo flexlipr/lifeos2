@@ -9,7 +9,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/*.png', 'icons/*.svg'],
       manifest: {
-        name: 'LifeOS 2.0',
+        name: 'LifeOS 3.0',
         short_name: 'LifeOS',
         description: 'Check-in nocturno diario',
         theme_color: '#0f0f0f',

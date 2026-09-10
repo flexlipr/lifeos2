@@ -1,7 +1,9 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { AppState } from '../types'
 import { exportJSON, importJSON } from '../lib/store'
 import { requestNotificationPermission } from '../lib/notifications'
+import { format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 interface Props {
   state: AppState
@@ -11,6 +13,7 @@ interface Props {
 
 export function Settings({ state, onImport, onBack }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
+  const [mostrarHistorial, setMostrarHistorial] = useState(false)
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -32,6 +35,7 @@ export function Settings({ state, onImport, onBack }: Props) {
 
   const totalEntries = Object.keys(state.entries).length
   const firstEntry = Object.keys(state.entries).sort()[0] ?? '—'
+  const revisiones = [...state.revisionesSemanales].sort((a, b) => b.semanaInicio.localeCompare(a.semanaInicio))
 
   return (
     <div className="flex flex-col min-h-screen bg-surface-0">
@@ -86,6 +90,36 @@ export function Settings({ state, onImport, onBack }: Props) {
           </button>
         </div>
 
+        <div className="bg-surface-1 rounded-2xl overflow-hidden">
+          <button
+            onClick={() => setMostrarHistorial(v => !v)}
+            className="w-full flex items-center justify-between px-5 py-4 active:bg-surface-2"
+          >
+            <div className="text-left">
+              <div className="text-white font-medium">Histórico de revisiones semanales</div>
+              <div className="text-zinc-500 text-sm">{revisiones.length} semanas registradas</div>
+            </div>
+            <span className="text-zinc-500 text-xl">{mostrarHistorial ? '▲' : '▼'}</span>
+          </button>
+          {mostrarHistorial && (
+            <div className="border-t border-surface-3 px-5 py-4 flex flex-col gap-3">
+              {revisiones.length === 0 && (
+                <p className="text-zinc-600 text-sm">Todavía no hay revisiones guardadas</p>
+              )}
+              {revisiones.map(r => (
+                <div key={r.semanaInicio} className="flex flex-col gap-0.5">
+                  <span className="text-zinc-500 text-xs">
+                    Semana del {format(parseISO(r.semanaInicio), "d MMM yyyy", { locale: es })}
+                  </span>
+                  <span className="text-zinc-300 text-sm">
+                    {r.respuesta || '—'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="bg-surface-1 rounded-2xl px-5 py-4">
           <h3 className="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-3">Info</h3>
           <div className="flex flex-col gap-2">
@@ -100,6 +134,10 @@ export function Settings({ state, onImport, onBack }: Props) {
             <div className="flex justify-between">
               <span className="text-zinc-500 text-sm">Libros terminados</span>
               <span className="text-zinc-300 text-sm">{state.librosTotales}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zinc-500 text-sm">Pesajes registrados</span>
+              <span className="text-zinc-300 text-sm">{state.pesajes.length}</span>
             </div>
           </div>
         </div>

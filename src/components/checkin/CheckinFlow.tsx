@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { ProgressBar } from '../ui/ProgressBar'
-import { StepPorros } from './StepPorros'
+import { StepAcostarse } from './StepAcostarse'
 import { StepCigarros } from './StepCigarros'
-import { StepAlcohol } from './StepAlcohol'
 import { StepGym } from './StepGym'
 import { StepLectura } from './StepLectura'
-import { StepFabrica } from './StepFabrica'
+import { StepPorros } from './StepPorros'
+import { StepJournaling } from './StepJournaling'
 import { DayEntry, AppState } from '../../types'
 
 interface Props {
@@ -20,16 +20,13 @@ const TOTAL_STEPS = 6
 function emptyEntry(date: string): Partial<DayEntry> {
   return {
     date,
-    porros: 0,
+    horaAcostarse: '23:00',
     cigarros: 0,
-    fueAlBar: false,
-    bebidasAlcohol: 0,
-    nocheDefiesta: false,
-    copas: 0,
     entreno: false,
     leyo: false,
     terminalLibro: false,
-    trabajoFabrica: false,
+    porros: 0,
+    journaling: false,
   }
 }
 
@@ -48,18 +45,13 @@ export function CheckinFlow({ date, initial, state, onComplete }: Props) {
       const complete: DayEntry = {
         date,
         completedAt: new Date().toISOString(),
-        porros: entry.porros ?? 0,
-        porrosEscalonRazon: entry.porrosEscalonRazon,
-        porrosEscalonJustificado: entry.porrosEscalonJustificado,
+        horaAcostarse: entry.horaAcostarse ?? '23:00',
         cigarros: entry.cigarros ?? 0,
-        fueAlBar: entry.fueAlBar ?? false,
-        bebidasAlcohol: entry.bebidasAlcohol ?? 0,
-        nocheDefiesta: entry.nocheDefiesta ?? false,
-        copas: entry.copas ?? 0,
         entreno: entry.entreno ?? false,
         leyo: entry.leyo ?? false,
         terminalLibro: entry.terminalLibro ?? false,
-        trabajoFabrica: entry.trabajoFabrica ?? false,
+        porros: entry.porros ?? 0,
+        journaling: entry.journaling ?? false,
       }
       onComplete(complete)
     }
@@ -69,7 +61,7 @@ export function CheckinFlow({ date, initial, state, onComplete }: Props) {
     if (step > 1) setStep(s => s - 1)
   }
 
-  const stepTitles = ['Porros', 'Cigarros', 'Alcohol', 'Gym', 'Lectura', 'Fábrica']
+  const stepTitles = ['Acostarse', 'Cigarros', 'Gym', 'Lectura', 'Porros', 'Journaling']
 
   return (
     <div className="flex flex-col min-h-screen bg-surface-0">
@@ -92,12 +84,12 @@ export function CheckinFlow({ date, initial, state, onComplete }: Props) {
 
       {/* Step content */}
       <div className="flex-1 overflow-y-auto">
-        {step === 1 && <StepPorros entry={entry} onChange={update} date={date} />}
+        {step === 1 && <StepAcostarse entry={entry} onChange={update} />}
         {step === 2 && <StepCigarros entry={entry} onChange={update} date={date} />}
-        {step === 3 && <StepAlcohol entry={entry} onChange={update} date={date} />}
-        {step === 4 && <StepGym entry={entry} onChange={update} date={date} entries={state.entries} />}
-        {step === 5 && <StepLectura entry={entry} onChange={update} librosTotales={state.librosTotales} />}
-        {step === 6 && <StepFabrica entry={entry} onChange={update} date={date} entries={state.entries} />}
+        {step === 3 && <StepGym entry={entry} onChange={update} date={date} entries={state.entries} />}
+        {step === 4 && <StepLectura entry={entry} onChange={update} librosTotales={state.librosTotales} />}
+        {step === 5 && <StepPorros entry={entry} onChange={update} date={date} />}
+        {step === 6 && <StepJournaling entry={entry} onChange={update} />}
       </div>
 
       {/* Next button */}

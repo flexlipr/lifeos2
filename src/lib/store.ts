@@ -1,11 +1,15 @@
-import { AppState, DayEntry } from '../types'
+import { AppState, DayEntry, Pesaje, RevisionSemanal } from '../types'
 
 const KEY = 'lifeos2'
 
 const DEFAULT_STATE: AppState = {
   entries: {},
   librosTotales: 0,
-  hitosCompletados: [],
+  pesajes: [
+    { date: '2026-07-14', kg: 92.3 },
+    { date: '2026-08-31', kg: 89.6 },
+  ],
+  revisionesSemanales: [],
 }
 
 export function loadState(): AppState {
@@ -42,11 +46,20 @@ export function upsertEntry(state: AppState, entry: DayEntry): AppState {
   return next
 }
 
-export function toggleHito(state: AppState, id: string): AppState {
-  const completados = state.hitosCompletados.includes(id)
-    ? state.hitosCompletados.filter(h => h !== id)
-    : [...state.hitosCompletados, id]
-  const next = { ...state, hitosCompletados: completados }
+export function addPesaje(state: AppState, pesaje: Pesaje): AppState {
+  const pesajes = [...state.pesajes.filter(p => p.date !== pesaje.date), pesaje]
+    .sort((a, b) => a.date.localeCompare(b.date))
+  const next = { ...state, pesajes }
+  saveState(next)
+  return next
+}
+
+export function addRevisionSemanal(state: AppState, revision: RevisionSemanal): AppState {
+  const revisionesSemanales = [
+    ...state.revisionesSemanales.filter(r => r.semanaInicio !== revision.semanaInicio),
+    revision,
+  ].sort((a, b) => a.semanaInicio.localeCompare(b.semanaInicio))
+  const next = { ...state, revisionesSemanales }
   saveState(next)
   return next
 }
@@ -56,7 +69,7 @@ export function exportJSON(state: AppState): void {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `lifeos2-backup-${new Date().toISOString().slice(0, 10)}.json`
+  a.download = `lifeos-backup-${new Date().toISOString().slice(0, 10)}.json`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -66,7 +79,7 @@ export function importJSON(file: File): Promise<AppState> {
     const reader = new FileReader()
     reader.onload = e => {
       try {
-        const data = JSON.parse(e.target!.result as string) as AppState
+        const data = { ...DEFAULT_STATE, ...JSON.parse(e.target!.result as string) } as AppState
         saveState(data)
         resolve(data)
       } catch {

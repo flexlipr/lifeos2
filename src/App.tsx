@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback } from 'react'
-import { format, subDays, getDay } from 'date-fns'
+import { useState, useEffect } from 'react'
+import { format, subDays, getDay, startOfWeek } from 'date-fns'
 import { CheckinFlow } from './components/checkin/CheckinFlow'
 import { ResultScreen } from './components/checkin/ResultScreen'
 import { Dashboard } from './components/dashboard/Dashboard'
 import { WeeklyReview } from './components/WeeklyReview'
 import { Settings } from './components/Settings'
-import { loadState, upsertEntry, toggleHito } from './lib/store'
+import { PesoScreen } from './components/peso/PesoScreen'
+import { loadState, upsertEntry, addPesaje, addRevisionSemanal } from './lib/store'
 import { scheduleReminders, cancelReminders } from './lib/notifications'
-import { AppState, DayEntry } from './types'
+import { AppState, DayEntry, Pesaje } from './types'
 
 type Screen =
   | 'checkin'
@@ -15,6 +16,7 @@ type Screen =
   | 'weekly-review'
   | 'dashboard'
   | 'settings'
+  | 'peso'
   | 'edit-yesterday'
   | 'edit-yesterday-result'
 
@@ -74,12 +76,20 @@ export default function App() {
     setScreen('edit-yesterday-result')
   }
 
-  function handleToggleHito(id: string) {
-    setAppState(s => toggleHito(s, id))
+  function handleWeeklyReviewContinue(respuesta: string) {
+    const semanaInicio = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
+    const newState = addRevisionSemanal(appState, {
+      semanaInicio,
+      respuesta,
+      guardadaEn: new Date().toISOString(),
+    })
+    setAppState(newState)
+    setScreen('dashboard')
   }
 
-  const canEditYesterday = !appState.entries[yesterdayStr]
-    || (appState.entries[yesterdayStr] && true) // always allow editing yesterday
+  function handleAddPesaje(pesaje: Pesaje) {
+    setAppState(s => addPesaje(s, pesaje))
+  }
 
   // Determine if we can show dashboard (today's check-in done)
   const todayEntry = appState.entries[todayStr]
@@ -143,7 +153,7 @@ export default function App() {
       <WeeklyReview
         state={appState}
         todayStr={todayStr}
-        onContinue={() => setScreen('dashboard')}
+        onContinue={handleWeeklyReviewContinue}
       />
     )
   }
@@ -153,6 +163,17 @@ export default function App() {
       <Settings
         state={appState}
         onImport={newState => { setAppState(newState); setScreen('dashboard') }}
+        onBack={() => setScreen('dashboard')}
+      />
+    )
+  }
+
+  if (screen === 'peso') {
+    return (
+      <PesoScreen
+        state={appState}
+        todayStr={todayStr}
+        onAddPesaje={handleAddPesaje}
         onBack={() => setScreen('dashboard')}
       />
     )
@@ -169,7 +190,7 @@ export default function App() {
         canEditYesterday={true}
         onEditYesterday={handleEditYesterday}
         onSettings={() => setScreen('settings')}
-        onToggleHito={handleToggleHito}
+        onOpenPeso={() => setScreen('peso')}
       />
     )
   }
