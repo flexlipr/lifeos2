@@ -2,48 +2,38 @@ export interface DayEntry {
   date: string
   completedAt: string
 
-  porros: number
-  porrosEscalonRazon?: string
-  porrosEscalonJustificado?: boolean
+  horaAcostarse: string // 'HH:mm', hora a la que se acostó la noche anterior
 
   cigarros: number
-
-  fueAlBar: boolean
-  bebidasAlcohol: number
-  nocheDefiesta: boolean
-  copas: number
 
   entreno: boolean
 
   leyo: boolean
   terminalLibro: boolean
 
-  trabajoFabrica: boolean
+  porros: number
+
+  journaling: boolean
+}
+
+export interface Pesaje {
+  date: string
+  kg: number
+  fueraDeDia?: boolean
+  motivo?: string
+}
+
+export interface RevisionSemanal {
+  semanaInicio: string // lunes de la semana, 'yyyy-MM-dd'
+  respuesta: string
+  guardadaEn: string
 }
 
 export interface AppState {
   entries: Record<string, DayEntry>
   librosTotales: number
-  hitosCompletados: string[]
-}
-
-export type FaseRegla =
-  | { tipo: 'tope'; max: number }
-  | { tipo: 'diasPermitidos'; dias: number[] }
-  | { tipo: 'ocasional' }
-
-export interface Fase {
-  nombre: string
-  inicio: string
-  fin: string | null
-  regla: FaseRegla
-}
-
-export interface Hito {
-  id: string
-  texto: string
-  fechaLimite: string
-  esCalculado?: boolean
+  pesajes: Pesaje[]
+  revisionesSemanales: RevisionSemanal[]
 }
 
 export type SemaforoColor = 'verde' | 'ambar' | 'rojo'
@@ -54,9 +44,8 @@ export interface SemaforoResult {
 }
 
 export interface ComparativaSemana {
-  porros: { actual: number; anterior: number }
+  acostarseMedia: { actual: number | null; anterior: number | null } // minutos desde medianoche, normalizado
   gym: { actual: number; anterior: number }
-  bar: { actual: number; anterior: number }
+  cigarros: { actual: number; anterior: number }
   lectura: { actual: number; anterior: number }
-  fiestasMes: number
 }
