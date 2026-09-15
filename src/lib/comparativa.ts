@@ -15,9 +15,11 @@ function semanaEntries(entries: AppState['entries'], semana: Date) {
 }
 
 function mediaAcostarse(arr: ReturnType<typeof semanaEntries>): number | null {
-  if (arr.length === 0) return null
-  const total = arr.reduce((acc, e) => acc + minutosNormalizados(e!.horaAcostarse), 0)
-  return total / arr.length
+  const minutos = arr
+    .map(e => minutosNormalizados(e!.horaAcostarse))
+    .filter((m): m is number => m !== null)
+  if (minutos.length === 0) return null
+  return minutos.reduce((acc, m) => acc + m, 0) / minutos.length
 }
 
 export function calcularComparativa(
